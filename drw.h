@@ -17,6 +17,7 @@ typedef struct Fnt {
 } Fnt;
 
 enum { ColFg, ColBg, ColBorder }; /* Clr scheme index */
+
 typedef XftColor Clr;
 
 typedef struct {

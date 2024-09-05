@@ -1,12 +1,12 @@
 include config.mk
 
-SRC = drw.c dwm.c utils.c
+SRC = drw.c ndwm.c utils.c
 OBJ = ${SRC:.c=.o}
 
-all: options dwm
+all: options ndwm
 
 options:
-	@echo dwm build options:
+	@echo ndwm build options:
 	@echo "CFLAGS   = ${CFLAGS}"
 	@echo "LDFLAGS  = ${LDFLAGS}"
 	@echo "CC       = ${CC}"
@@ -19,18 +19,18 @@ ${OBJ}: config.h config.mk
 config.h:
 	cp config.def.h $@
 
-dwm: ${OBJ}
+ndwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
 clean:
-	rm -f dwm ${OBJ} 
+	rm -f ndwm ${OBJ} 
 
 install: all
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f dwm ${DESTDIR}${PREFIX}/bin
-	chmod 755 ${DESTDIR}${PREFIX}/bin/dwm
+	cp -f ndwm ${DESTDIR}${PREFIX}/bin
+	chmod 755 ${DESTDIR}${PREFIX}/bin/ndwm
 
 uninstall:
-	rm -f ${DESTDIR}${PREFIX}/bin/dwm
+	rm -f ${DESTDIR}${PREFIX}/bin/ndwm
 
 .PHONY: all options clean install uninstall
