@@ -1,6 +1,6 @@
 include config.mk
 
-SRC = drw.c ndwm.c utils.c
+SRC = drw.c ndwm.c utils.c systray.c monitor.c xerror.c
 OBJ = ${SRC:.c=.o}
 
 all: options ndwm

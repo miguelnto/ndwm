@@ -1,14 +1,12 @@
 /* Appearance */
 #include <X11/Xutil.h>
 
-static const unsigned int borderpx  = 1;        /* border pixel of windows */
-static const unsigned int snap      = 32;       /* snap pixel */
-static const unsigned int systrayspacing = 2;   /* systray spacing */
-static const bool top_bar             = true;        /* default: top is displayed on the top */
-static const char *fonts[]          = { "Terminus (TTF):style=Medium:size=9",  // Stable: JetBrains Mono:size=12 ; Japanese: IPAGothic:style=Regular
+static const unsigned int borderpx    = 1;        /* Border pixel of windows */
+static const bool top_bar             = true;        /* Default: bar is displayed on the top */
+static const char *fonts[]            = { "Terminus (TTF):style=Medium:size=9",  /* Stable: JetBrains Mono:size=12 ; Japanese: IPAGothic:style=Regular */
 					"FontAwesome:style=Regular:size=9:antialias=true:autohint=true",
 };
-static const char dmenufont[]       = "monospace:size=10";
+
 static const char col_gray1[]       = "#222222";
 static const char col_gray2[]       = "#444444";
 static const char col_gray3[]       = "#bbbbbb";
@@ -30,15 +28,13 @@ static const char *colors[][3]      = {
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 
 /* Layout */
-static const float master_factor     = 0.52; /* factor of master area size [0.05..0.95] */
+static const float master_factor = 0.52; /* factor of master area size [0.05..0.95] */
 
 static const Layout layouts[] = {
-	/* arrange function */
-	{ tile },    /* first entry is default */
-	{ NULL },    /* no layout function means floating behavior */
+	{ tile },    /* First entry is default */
+	{ NULL },    /* No layout function means floating behavior */
 };
 
-/* key definitions */
 #define MODKEY Mod4Mask
 
 #define TAGKEYS(KEY,TAG) \
@@ -46,15 +42,13 @@ static const Layout layouts[] = {
         { MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 
 
-/* Helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
-/* commands */
 static const char *termcmd[]  = { "st", NULL };
 
 #include <X11/XF86keysym.h>
 
-static Key keys[] = {
+static const Key keys[] = {
 
 	/* Application hotkeys */
 	{ MODKEY,                       XK_d,      spawn,          SHCMD("dmenu_run") },
@@ -93,10 +87,9 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_r,      quit,           {0} },
 };
 
-/* Button definitions */
 /* Button3 is Right Click, Button1 is Left Click, Button2 is Middle Click */
 /* Click can be ClkTagBar, ClkWinTitle, ClkClientWin, or ClkRootWin */
-static Button buttons[] = {
+static const Button buttons[] = {
 	/* click                event mask      button          function        argument */
 	{ ClkClientWin,         MODKEY,         Button1,        move_with_mouse,      {0} },
 	{ ClkClientWin,         MODKEY,         Button2,        toggle_floating, {0} },
