@@ -1,36 +1,39 @@
 include config.mk
 
-SRC = drw.c ndwm.c utils.c systray.c monitor.c xerror.c
+SRC = ${SRCDIR}/*.c
 OBJ = ${SRC:.c=.o}
 
-all: options ndwm
+all: dirs options ${MAIN}
+
+dirs:
+	mkdir -p bin
+	mkdir -p obj
 
 options:
-	@echo ndwm build options:
+	@echo ${MAIN} build options:
 	@echo "CFLAGS   = ${CFLAGS}"
 	@echo "LDFLAGS  = ${LDFLAGS}"
 	@echo "CC       = ${CC}"
 
 .c.o:
-	${CC} -c ${CFLAGS} $<
+	${CC} -c ${CFLAGS} ${SRC}
+	mv -f ./*.o ${OBJDIR}
 
-${OBJ}: config.h config.mk
+${MAIN}: ${OBJ}
+	${CC} -o ${BIN}/$@ ${OBJDIR}/*.o ${LDFLAGS}
 
-config.h:
-	cp config.def.h $@
-
-ndwm: ${OBJ}
-	${CC} -o $@ ${OBJ} ${LDFLAGS}
+analyze:
+	cppcheck --enable=all --check-level=exhaustive --suppress=missingIncludeSystem src/
 
 clean:
-	rm -f ndwm ${OBJ} 
+	rm -f ${BIN}/${MAIN} ${OBJDIR}/*.o
 
 install: all
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f ndwm ${DESTDIR}${PREFIX}/bin
-	chmod 755 ${DESTDIR}${PREFIX}/bin/ndwm
+	install -m 0755 ${BIN}/${MAIN} ${DESTDIR}${PREFIX}/bin/${MAIN}
 
 uninstall:
-	rm -f ${DESTDIR}${PREFIX}/bin/ndwm
+	rm -f ${DESTDIR}${PREFIX}/bin/${MAIN}
 
 .PHONY: all options clean install uninstall
+

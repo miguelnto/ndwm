@@ -14,8 +14,5 @@ extern Systray *systray;
 /* Constants */
 static const unsigned int systrayspacing = 2; 
 
-int get_systray_width(void);
-void remove_systray_icon(Client *i);
-
 #endif
 

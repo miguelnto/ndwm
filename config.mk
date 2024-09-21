@@ -1,4 +1,16 @@
-# Customize below to fit your system
+# Customize according to your system
+
+# Executable file
+MAIN = ndwm
+
+# Output directory for the executable file
+BIN = bin
+
+# Output directory for *.o files
+OBJDIR = obj
+
+# Source code directory
+SRCDIR = src
 
 # Paths
 PREFIX = /usr/local
@@ -9,18 +21,18 @@ X11LIB = /usr/X11R6/lib
 FREETYPELIBS = -lfontconfig -lXft
 FREETYPEINC = /usr/include/freetype2
 
-# OpenBSD (uncomment)
-#FREETYPEINC = ${X11INC}/freetype2
+# OpenBSD (Uncomment)
+# FREETYPEINC = ${X11INC}/freetype2
 
-# Includes and Libs
+# Includes and libs
 INCS = -I${X11INC} -I${FREETYPEINC}
 LIBS = -L${X11LIB} -lX11 ${FREETYPELIBS} 
 
 # Flags
-# CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=2 
 CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700L  
-CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Wunused -Wunused-function -Wunused-macros -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS}
+CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Wunused -Wunused-function -Wunused-local-typedefs -Wunused-macros -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS}
 LDFLAGS  = ${LIBS}
 
-# Compiler and linker
+# Compiler
 CC = cc
+

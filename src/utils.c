@@ -7,8 +7,9 @@ void *ecalloc(size_t nmemb, size_t size)
 {
 	void *p;
 
-	if (!(p = calloc(nmemb, size)))
+	if (!(p = calloc(nmemb, size))) {
 		die("calloc:");
+	}
 	return p;
 }
 
@@ -26,6 +27,5 @@ void die(const char *fmt, ...)
 	} else {
 		fputc('\n', stderr);
 	}
-
 	exit(1);
 }
