@@ -1,5 +1,7 @@
 # ndwm
 
+![ndwm](doc/ndwm.png)
+
 NDWM is a dynamic window manager for X11, based on DWM.
 
 ## Requirements
