@@ -61,3 +61,6 @@ This section is under development.
 
 This section is under development.
 
+## Screenshots
+
+![Screenshot](doc/print.png)
