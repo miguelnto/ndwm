@@ -5,15 +5,15 @@
 #include <X11/Xft/Xft.h>
 
 typedef struct {
-	Cursor cursor;
+    Cursor cursor;
 } Cur;
 
 typedef struct Fnt {
-	Display *dpy;
-	unsigned int h;
-	XftFont *xfont;
-	FcPattern *pattern;
-	struct Fnt *next;
+    Display *dpy;
+    unsigned int h;
+    XftFont *xfont;
+    FcPattern *pattern;
+    struct Fnt *next;
 } Fnt;
 
 enum { ColFg, ColBg, ColBorder }; /* Clr scheme index */
@@ -21,14 +21,14 @@ enum { ColFg, ColBg, ColBorder }; /* Clr scheme index */
 typedef XftColor Clr;
 
 typedef struct {
-	unsigned int w, h;
-	Display *dpy;
-	int screen;
-	Window root;
-	Drawable drawable;
-	GC gc;
-	Clr *scheme;
-	Fnt *fonts;
+    unsigned int w, h;
+    Display *dpy;
+    int screen;
+    Window root;
+    Drawable drawable;
+    GC gc;
+    Clr *scheme;
+    Fnt *fonts;
 } Drw;
 
 /* Drawable abstraction */
@@ -49,9 +49,6 @@ Clr *drw_scm_create(Drw *drw, const char *clrnames[], size_t clrcount);
 /* Cursor abstraction */
 Cur *drw_cur_create(Drw *drw, int shape);
 void drw_cur_free(Drw *drw, Cur *cursor);
-
-/* Drawing context manipulation */
-void drw_setscheme(Drw *drw, Clr *scm);
 
 /* Drawing functions */
 void drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled, int invert);

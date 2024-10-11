@@ -4,15 +4,9 @@
 #include "types/client.h"
 
 typedef struct {
-	Window win;
-	Client *icons; 
+    Window win;
+    Client *icons; 
 } Systray;
-
-/* Global varibles */ 
-extern Systray *systray;
-
-/* Constants */
-static const unsigned int systrayspacing = 2; 
 
 #endif
 

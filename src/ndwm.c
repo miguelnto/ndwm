@@ -114,7 +114,7 @@ static void set_fullscreen(Display *dpy, Monitor *mon, Client *c, bool fullscree
 
 /* Resize functions */
 static void resize(Client *c, int x, int y, int w, int h, bool interact);
-static void resize_bar_win(Display *dpy, Monitor *m, Systray *systray);
+static void resize_bar_win(Display *display, Monitor *m, Systray *systray);
 static void resize_client(Display *dpy, Monitor *mon, Client *c, int x, int y, int w, int h);
 
 /* Cleanup functions */
@@ -219,13 +219,14 @@ static Clr **scheme;
 static Display *dpy;
 static Drw *drw;
 static Window root, wmcheckwin;
+static Systray *systray = NULL;
+static Monitor *first_monitor = NULL;
 
 /* Configuration, allows nested code to access above variables */
 #include "config.h"
 
 Systray *systray_init(Monitor *m, XSetWindowAttributes *window_attrs)
 {
-
     Systray *new_systray = ecalloc(1, sizeof(Systray));
     new_systray->win = XCreateSimpleWindow(dpy, root, m->mx + m->mw, m->by, 1, m->bh, 0, 0, scheme[SchemeSel][ColBg].pixel);
     window_attrs->event_mask        = ButtonPressMask | ExposureMask;
@@ -312,7 +313,6 @@ void button_press(XEvent *e)
         }
     }
 }
-
 
 void attach_stack(Monitor *mon, Client *c)
 {
@@ -476,22 +476,21 @@ void arrange(Monitor *m)
 
 void systray_deinit(Display *display, Systray *systray)
 {
-    XUnmapWindow(dpy, systray->win);
-    XDestroyWindow(dpy, systray->win);
+    XUnmapWindow(display, systray->win);
+    XDestroyWindow(display, systray->win);
     free(systray);
 }
 
 void cleanup(void)
 {
     Arg a = {.ui = 0};
-    Monitor *mon = first_monitor;
     size_t i;
 
     view(&a);
-    unmanage(mon->stack, false);
+    unmanage(first_monitor->stack, false);
     XUngrabKey(dpy, AnyKey, AnyModifier, root);
     
-    monitor_deinit(dpy, mon);
+    monitor_deinit(dpy, first_monitor);
     systray_deinit(dpy, systray);
     
     for (i = 0; i < CurLast; i++) {
@@ -746,7 +745,7 @@ void draw_bar(Monitor *m)
 
     int stw = get_systray_width(systray);
     /* Draw status first so it can be overdrawn by tags later */
-    drw_setscheme(drw, scheme[SchemeNorm]);
+    drw->scheme = scheme[SchemeNorm];
     int sw = TEXTW(stext) - lrpad / 2 + 2; /* 2px right padding */
     drw_text(drw, m->ww - sw - stw, 0, sw, m->bh, lrpad / 2 - 2, stext, 0);
 
@@ -760,7 +759,7 @@ void draw_bar(Monitor *m)
     int x = 0;
     for (unsigned int i = 0; i < TAGS_LEN; i++) {
         w = TEXTW(tags[i]);
-        drw_setscheme(drw, scheme[(m->tagset[m->seltags] & 1 << i) ? SchemeSel : SchemeNorm]);
+        drw->scheme = scheme[(m->tagset[m->seltags] & 1 << i) ? SchemeSel : SchemeNorm];
         drw_text(drw, x, 0, w, m->bh, lrpad / 2, tags[i], urg & 1 << i);
         if (occ & 1 << i) {
             drw_rect(drw, x + boxs, boxs, boxw, boxw,
@@ -769,17 +768,17 @@ void draw_bar(Monitor *m)
         x += w;
     }
     w = 0;
-    drw_setscheme(drw, scheme[SchemeNorm]);
+    drw->scheme = scheme[SchemeNorm];
 
     if ((w = m->ww - sw - stw - x) > m->bh) {
         if (m->selected_client && show_title) {
-            drw_setscheme(drw, scheme[SchemeSel]);
+            drw->scheme = scheme[SchemeSel];
             drw_text(drw, x, 0, w, m->bh, lrpad / 2, m->selected_client->name, 0);
             if (m->selected_client->is_floating) {
                 drw_rect(drw, x + boxs, boxs, boxw, boxw, m->selected_client->is_fixed, 0);
             }
         } else {
-            drw_setscheme(drw, scheme[SchemeNorm]);
+            drw->scheme = scheme[SchemeNorm];
             drw_rect(drw, x, 0, w, m->bh, 1, 1);
         }
     }
@@ -878,14 +877,14 @@ void focus_previous(const Arg *arg)
         Client *i = first_monitor->clients;
     for (; i != first_monitor->selected_client; i = i->next) {
         if (ISVISIBLE(i)) {
-        c = i;
+            c = i;
         }
     }
     if (!c) {
         for (; i; i = i->next) {
-        if (ISVISIBLE(i)) {
-            c = i;
-        }
+            if (ISVISIBLE(i)) {
+                c = i;
+            }
         }
     }
     if (c) {
@@ -1247,9 +1246,9 @@ void resize(Client *c, int x, int y, int w, int h, bool interact)
     }
 }
 
-void resize_bar_win(Display *dpy, Monitor *m, Systray *systray) 
+void resize_bar_win(Display *display, Monitor *m, Systray *systray) 
 {
-    XMoveResizeWindow(dpy, m->bar_win, m->wx, m->by, m->ww - get_systray_width(systray), m->bh);
+    XMoveResizeWindow(display, m->bar_win, m->wx, m->by, m->ww - get_systray_width(systray), m->bh);
 }
 
 void resize_client(Display *dpy, Monitor *mon, Client *c, int x, int y, int w, int h)
@@ -1459,7 +1458,7 @@ void set_fullscreen(Display *dpy, Monitor *mon, Client *c, bool fullscreen)
         resize_client(dpy, mon, c, mon->mx, mon->my, mon->mw, mon->mh);
         XRaiseWindow(dpy, c->win);
     } else if (!fullscreen && c->is_fullscreen) {
-                XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32, PropModeReplace, (unsigned char*)0, 0);
+        XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32, PropModeReplace, (unsigned char*)0, 0);
         c->is_fullscreen = false;
         c->is_floating = c->oldstate;
         c->bw = c->oldbw;
@@ -1563,7 +1562,7 @@ void setup(void)
     /* Supporting window for NetWMCheck */
     wmcheckwin = XCreateSimpleWindow(dpy, root, 0, 0, 1, 1, 0, 0, 0);
     XChangeProperty(dpy, wmcheckwin, netatom[NetWMCheck], XA_WINDOW, 32, PropModeReplace, (unsigned char *) &wmcheckwin, 1);
-    XChangeProperty(dpy, wmcheckwin, netatom[NetWMName], utf8string, 8, PropModeReplace, (unsigned char *) "ndwm", 3);
+    XChangeProperty(dpy, wmcheckwin, netatom[NetWMName], utf8string, 8, PropModeReplace, (unsigned char *) "ndwm", 4);
     XChangeProperty(dpy, root, netatom[NetWMCheck], XA_WINDOW, 32, PropModeReplace, (unsigned char *) &wmcheckwin, 1);
 
     /* EWMH support per view */
@@ -1597,15 +1596,15 @@ void set_urgent(Client *c, bool urg)
 void go_to_left_tag(const Arg *arg)
 {
     Arg shifted;
-        shifted.ui = first_monitor->tagset[first_monitor->seltags];
-        shifted.ui = (shifted.ui >> 1 | shifted.ui << (TAGS_LEN - 1));
+    shifted.ui = first_monitor->tagset[first_monitor->seltags];
+    shifted.ui = (shifted.ui >> 1 | shifted.ui << (TAGS_LEN - 1));
     view(&shifted);
 }
 
 void go_to_right_tag(const Arg *arg) 
 {
     Arg shifted;
-        shifted.ui = first_monitor->tagset[first_monitor->seltags];
+    shifted.ui = first_monitor->tagset[first_monitor->seltags];
     shifted.ui = (shifted.ui << 1) | (shifted.ui >> (TAGS_LEN - 1));
     view(&shifted);
 }
@@ -1613,7 +1612,7 @@ void go_to_right_tag(const Arg *arg)
 void move_client_to_right_tag(const Arg *arg)
 {
     Arg shifted;
-        shifted.ui = first_monitor->tagset[first_monitor->seltags];
+    shifted.ui = first_monitor->tagset[first_monitor->seltags];
     shifted.ui = (shifted.ui << 1) | (shifted.ui >> (TAGS_LEN - 1));
     tag(&shifted);
 }
@@ -1621,8 +1620,8 @@ void move_client_to_right_tag(const Arg *arg)
 void move_client_to_left_tag(const Arg *arg)
 {
     Arg shifted;
-        shifted.ui = first_monitor->tagset[first_monitor->seltags];
-        shifted.ui = (shifted.ui >> 1 | shifted.ui << (TAGS_LEN - 1));
+    shifted.ui = first_monitor->tagset[first_monitor->seltags];
+    shifted.ui = (shifted.ui >> 1 | shifted.ui << (TAGS_LEN - 1));
     tag(&shifted);
 }
 
@@ -1650,7 +1649,7 @@ void spawn(const Arg *arg)
     struct sigaction sa;
     if (fork() == 0) {
         if (dpy) { 
-        close(ConnectionNumber(dpy));
+            close(ConnectionNumber(dpy));
         }
         setsid();
         sigemptyset(&sa.sa_mask);
@@ -1665,19 +1664,17 @@ void spawn(const Arg *arg)
 void toggle_fullscreen(const Arg *arg)
 {
     if (first_monitor->selected_client) {
-    set_fullscreen(dpy, first_monitor, first_monitor->selected_client, !first_monitor->selected_client->is_fullscreen);
+        set_fullscreen(dpy, first_monitor, first_monitor->selected_client, !first_monitor->selected_client->is_fullscreen);
     }
 }
 
 void toggle_floating(const Arg *arg)
 {
-        if (!first_monitor->selected_client) {
+    if (!first_monitor->selected_client || first_monitor->selected_client->is_fullscreen) {
         return;
     }
-    if (first_monitor->selected_client->is_fullscreen) {
-        return;
-    }
-        first_monitor->selected_client->is_floating = !first_monitor->selected_client->is_floating || first_monitor->selected_client->is_fixed;
+
+    first_monitor->selected_client->is_floating = !first_monitor->selected_client->is_floating || first_monitor->selected_client->is_fixed;
     if (first_monitor->selected_client->is_floating) {
         /* Restore last known float dimensions */
         resize(first_monitor->selected_client, first_monitor->selected_client->sfx, first_monitor->selected_client->sfy,
@@ -1737,9 +1734,9 @@ void unmap_notify(XEvent *e)
 
     if ((client = window_to_client(ev->window))) {
         if (ev->send_event) {
-                    set_client_state(client, WithdrawnState);
+            set_client_state(client, WithdrawnState);
         } else {
-                    unmanage(client, false);
+            unmanage(client, false);
         }
     } else if ((client = window_to_systray_icon(systray, ev->window))) {
         /* Sometimes icons occasionally unmap their windows, but do not destroy them. We map those windows back */
@@ -2083,19 +2080,14 @@ int main(void)
     }
     check_another_wm_running(dpy);
     setup();
-#ifdef __OpenBSD__
-    if (pledge("stdio rpath proc exec", NULL) == -1) {
-        die("pledge");
-    }
-#endif
     scan();
     XEvent ev;
     /* Main event loop */
     XSync(dpy, False);
     while (running && !XNextEvent(dpy, &ev)) {
         if (handler[ev.type]) {
-        /* Call handler */
-        handler[ev.type](&ev);
+            /* Call handler */
+            handler[ev.type](&ev);
         }
     }
     cleanup();
