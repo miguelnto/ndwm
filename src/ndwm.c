@@ -57,6 +57,7 @@ enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
 enum { Manager, Xembed, XembedInfo, XLast }; /* Xembed atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* Default atoms */
 enum { ClkTagBar, ClkClientWin, ClkRootWin }; /* Clicks */
+/* this is a test */
 
 static void arrange(Monitor *m);
 static void configure(Display *dpy, Client *c);
