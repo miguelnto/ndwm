@@ -22,18 +22,15 @@ options:
 ${MAIN}: ${OBJ}
 	${CC} -o ${BIN}/$@ ${OBJDIR}/*.o ${LDFLAGS}
 
-analyze:
-	cppcheck --enable=all --check-level=exhaustive --suppress=missingIncludeSystem src/
-
 clean:
 	rm -f ${BIN}/${MAIN} ${OBJDIR}/*.o
 
 install: all
-	mkdir -p ${DESTDIR}${PREFIX}/bin
-	install -m 0755 ${BIN}/${MAIN} ${DESTDIR}${PREFIX}/bin/${MAIN}
+	mkdir -p ${DESTDIR}${INSTALLDIR}
+	install -m 0755 ${BIN}/${MAIN} ${DESTDIR}${INSTALLDIR}/${MAIN}
 
 uninstall:
-	rm -f ${DESTDIR}${PREFIX}/bin/${MAIN}
+	rm -f ${DESTDIR}${INSTALLDIR}/${MAIN}
 
 .PHONY: all options clean install uninstall
 

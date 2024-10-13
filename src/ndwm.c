@@ -32,7 +32,7 @@
 #define MOUSEMASK                   (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)                    ((X)->w + 2 * (X)->bw)
 #define HEIGHT(X)                   ((X)->h + 2 * (X)->bw)
-#define TAGMASK                 ((1 << TAGS_LEN) - 1)
+#define TAGMASK                     ((1 << TAGS_LEN) - 1)
 #define TEXTW(X)                    (drw_fontset_getwidth(drw, (X)) + lrpad)
 #define ISVISIBLE(C)                ((C->tags & first_monitor->tagset[first_monitor->seltags]))
 #define SYSTEM_TRAY_REQUEST_DOCK    0
@@ -41,12 +41,10 @@
 #define XEMBED_EMBEDDED_NOTIFY      0
 #define XEMBED_FOCUS_IN             4
 #define XEMBED_MODALITY_ON          10
-#define XEMBED_MAPPED               (1 << 0)
+#define XEMBED_MAPPED               1
 #define XEMBED_WINDOW_ACTIVATE      1
 #define XEMBED_WINDOW_DEACTIVATE    2
-#define VERSION_MAJOR               0
-#define VERSION_MINOR               0
-#define XEMBED_EMBEDDED_VERSION     (VERSION_MAJOR << 16) | VERSION_MINOR
+#define XEMBED_EMBEDDED_VERSION     0
 
 enum { CurNormal, CurResize, CurMove, CurLast }; /* Cursor */
 enum { SchemeNorm, SchemeSel }; /* Color schemes */
@@ -62,6 +60,7 @@ enum { ClkTagBar, ClkClientWin, ClkRootWin }; /* Clicks */
 /* Init and deinit functions, following the Zig memory management pattern. */
 static Systray *systray_init(Monitor *m, XSetWindowAttributes *window_attrs);
 static Monitor *monitor_init(void);
+static Client *client_init(void);
 static void monitor_deinit(Display *dpy, Monitor *m);
 static void systray_deinit(Display *display, Systray *systray);
 
@@ -283,9 +282,9 @@ void button_press(XEvent *e)
 {
     unsigned int i;
     Arg arg = {0};
-    Client *client;
     XButtonPressedEvent *ev = &e->xbutton;
     unsigned int click = ClkRootWin;
+    Client *client = window_to_client(ev->window);
 
     /* Focus monitor if necessary */
     unfocus(first_monitor->selected_client, true);
@@ -300,7 +299,7 @@ void button_press(XEvent *e)
             click = ClkTagBar;
             arg.ui = 1 << i;
         } 
-    } else if ((client = window_to_client(ev->window))) {
+    } else if (client) {
         focus(dpy, first_monitor, root, client);
         restack(first_monitor);
         XAllowEvents(dpy, ReplayPointer, CurrentTime);
@@ -514,6 +513,11 @@ void monitor_deinit(Display *dpy, Monitor *m)
     free(m);
 }
 
+Client *client_init(void) {
+    Client *new_client = (Client *)ecalloc(1, sizeof(Client));
+    return new_client;
+}
+
 void client_message(XEvent *e)
 {
     XWindowAttributes wa;
@@ -524,9 +528,7 @@ void client_message(XEvent *e)
     if (cme->window == systray->win && cme->message_type == netatom[NetSystemTrayOP]) {
         /* Add systray icons */
         if (cme->data.l[1] == SYSTEM_TRAY_REQUEST_DOCK) {
-            if (!(c = (Client *)calloc(1, sizeof(Client)))) {
-                die("fatal: could not malloc() %u bytes\n", sizeof(Client));
-            }
+            c = client_init();
             if (!(c->win = cme->data.l[2])) {
                 free(c);
                 return;
@@ -632,10 +634,10 @@ void configure_notify(XEvent *e)
 
 void configure_request(XEvent *e)
 {
-    Client *c;
     XConfigureRequestEvent *ev = &e->xconfigurerequest;
+    Client *c = window_to_client(ev->window);
 
-    if ((c = window_to_client(ev->window))) {
+    if (c) {
         if (ev->value_mask & CWBorderWidth) {
             c->bw = ev->border_width;
         } else if (c->is_floating) {
@@ -671,7 +673,7 @@ void configure_request(XEvent *e)
             configure(dpy, c);
         }
     } else {
-            XWindowChanges wc;
+        XWindowChanges wc;
         wc.x = ev->x;
         wc.y = ev->y;
         wc.width = ev->width;
@@ -703,10 +705,10 @@ Monitor *monitor_init(void)
 
 void destroy_notify(XEvent *e)
 {
-    Client *client;
     XDestroyWindowEvent *ev = &e->xdestroywindow;
+    Client *client = window_to_client(ev->window);
 
-    if ((client = window_to_client(ev->window))) {
+    if (client) {
         unmanage(client, true);
     } else if ((client = window_to_systray_icon(systray, ev->window))) {
         remove_systray_icon(systray, client);
@@ -738,7 +740,6 @@ void detach_stack(Monitor *mon, Client *c)
 
 void draw_bar(Monitor *m)
 {
-    int w;
     int boxs = drw->fonts->h / 9;
     int boxw = drw->fonts->h / 6 + 2;
     unsigned int occ = 0, urg = 0;
@@ -757,6 +758,7 @@ void draw_bar(Monitor *m)
         }
     }
     int x = 0;
+    int w;
     for (unsigned int i = 0; i < TAGS_LEN; i++) {
         w = TEXTW(tags[i]);
         drw->scheme = scheme[(m->tagset[m->seltags] & 1 << i) ? SchemeSel : SchemeNorm];
@@ -874,7 +876,7 @@ void focus_previous(const Arg *arg)
         return;
     }
     Client *c = NULL;
-        Client *i = first_monitor->clients;
+    Client *i = first_monitor->clients;
     for (; i != first_monitor->selected_client; i = i->next) {
         if (ISVISIBLE(i)) {
             c = i;
@@ -1034,7 +1036,7 @@ void manage(Window w, const XWindowAttributes *wa)
     Window trans = None;
     XWindowChanges wc;
 
-    Client *c = ecalloc(1, sizeof(Client));
+    Client *c = client_init();
     c->win = w;
     /* Geometry */
     c->x = c->oldx = wa->x;
@@ -1107,8 +1109,8 @@ void map_request(XEvent *e)
 {
     static XWindowAttributes wa;
     XMapRequestEvent *ev = &e->xmaprequest;
-    Client *i;
-    if ((i = window_to_systray_icon(systray, ev->window))) {
+    Client *i = window_to_systray_icon(systray, ev->window);
+    if (i) {
         send_event(i->win, netatom[Xembed], StructureNotifyMask, CurrentTime, XEMBED_WINDOW_ACTIVATE, 0, systray->win, XEMBED_EMBEDDED_VERSION);
         resize_bar_win(dpy, first_monitor, systray);
         update_systray(dpy, first_monitor);
@@ -1246,7 +1248,7 @@ void resize(Client *c, int x, int y, int w, int h, bool interact)
     }
 }
 
-void resize_bar_win(Display *display, Monitor *m, Systray *systray) 
+void resize_bar_win(Display *display, Monitor *m, Systray *systray)
 {
     XMoveResizeWindow(display, m->bar_win, m->wx, m->by, m->ww - get_systray_width(systray), m->bh);
 }
@@ -1331,9 +1333,9 @@ void resize_with_mouse(const Arg *arg)
 void resize_request(XEvent *e)
 {
     XResizeRequestEvent *event = &e->xresizerequest;
-    Client *i;
+    Client *i = window_to_systray_icon(systray, event->window);
 
-    if ((i = window_to_systray_icon(systray, event->window))) {
+    if (i) {
         update_systray_icon_geometry(first_monitor, i, event->width, event->height);
         resize_bar_win(dpy, first_monitor, systray);
         update_systray(dpy, first_monitor);
@@ -1410,7 +1412,7 @@ bool send_event(Window w, Atom proto, int mask, long d0, long d1, long d2, long 
     if (proto == wmatom[WMTakeFocus] || proto == wmatom[WMDelete]) {
         mt = wmatom[WMProtocols];
         int n;
-                Atom *protocols;
+        Atom *protocols;
         if (XGetWMProtocols(dpy, w, &protocols, &n)) {
             while (!exists && n--) {
                 exists = protocols[n] == proto;
@@ -1582,10 +1584,10 @@ void setup(void)
 
 void set_urgent(Client *c, bool urg)
 {
-    XWMHints *wmh;
+    XWMHints *wmh =  XGetWMHints(dpy, c->win);
 
     c->is_urgent = urg;
-    if (!(wmh = XGetWMHints(dpy, c->win))) {
+    if (!wmh) {
         return;
     }
     wmh->flags = urg ? (wmh->flags | XUrgencyHint) : (wmh->flags & ~XUrgencyHint);
@@ -1966,7 +1968,7 @@ void update_title(Client *c)
     if (!get_text_prop(c->win, netatom[NetWMName], c->name, sizeof c->name)) {
         get_text_prop(c->win, XA_WM_NAME, c->name, sizeof c->name);
     }
-        /* Hack to mark broken clients */
+    /* Hack to mark broken clients */
     if (c->name[0] == '\0') {
         strcpy(c->name, stext);
     }
@@ -1984,9 +1986,9 @@ void update_window_type(Client *c)
 
 void update_wm_hints(Display *dpy, const Monitor *mon, Client *c)
 {
-    XWMHints *wm_hints;
+    XWMHints *wm_hints = XGetWMHints(dpy, c->win);
 
-    if ((wm_hints = XGetWMHints(dpy, c->win))) {
+    if (wm_hints) {
         if (c == mon->selected_client && wm_hints->flags & XUrgencyHint) {
             wm_hints->flags &= ~XUrgencyHint;
             XSetWMHints(dpy, c->win, wm_hints);
@@ -2098,9 +2100,9 @@ int main(void)
 void tile(Monitor *m)
 {
     unsigned int i, n, h, mw, my, ty;
-    Client *c;
+    Client *c = next_tiled_client(m->clients);
 
-    for (n = 0, c = next_tiled_client(m->clients); c; c = next_tiled_client(c->next), n++);
+    for (n = 0; c; c = next_tiled_client(c->next), n++);
     if (n == 0) {
         return;
     }
@@ -2111,7 +2113,7 @@ void tile(Monitor *m)
         mw = m->ww;
     }
 
-    for (i = my = ty = 0, c = next_tiled_client(m->clients); c; c = next_tiled_client(c->next), i++)
+    for (i = my = ty = 0, c = next_tiled_client(m->clients); c; c = next_tiled_client(c->next), i++) {
         if (i < 1) {
             h = (m->wh - my) / (MIN(n, 1) - i);
             resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), false);
@@ -2121,5 +2123,6 @@ void tile(Monitor *m)
             resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw),false);
             if (ty + HEIGHT(c) < m->wh) ty += HEIGHT(c);
         }
+    }
 }
 

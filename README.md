@@ -8,12 +8,14 @@ NDWM is a dynamic window manager for X11, based on DWM.
 
 In order to build this project, you need:
 
+- A C99 Compiler
 - GNU Make
-- Xlib (X11)
+- libx11
+- libfreetype2
 
 ## Build
 
-This project is meant to be built using GNU Make, running the following command:
+You can build this project by running `make`:
 
 ```sh
 make
@@ -29,9 +31,11 @@ Enter the following command to build and install (if necessary, run it as root):
 make clean install
 ```
 
+By default, the program is installed in `/usr/local/bin`.
+
 ## Usage
 
-Put **ndwm** in your `.xinitrc` file or other startup script to start the window manager. It's also recommended to **ndwm** along with a status bar, such as **sblocks.** If you choose to do so, your `.xinitrc` file should look something like this:
+Put **ndwm** in your `.xinitrc` file or other startup script to start the window manager. It's also recommended to use **ndwm** with a status bar, such as **sblocks.** If you choose to do so, your `.xinitrc` file should look something like this:
 
 ```
 sblocks &
@@ -50,7 +54,7 @@ exec ndwm
 ## TODO
 
 - [ ] Color scheme configuration needs to be simplified.
-- [ ] Configuration should be done in a proper .conf file, or a .toml file.
+- [ ] Configuration should be done in a proper configuration file such as a .toml file.
 - [ ] There's still a lot of nonsensical code to fix.
 
 ## Default configuration

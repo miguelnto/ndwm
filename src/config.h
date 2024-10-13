@@ -6,7 +6,7 @@
 /* USER CONFIGURATION */
 /* ------------------------------------------------------------------------------------------ */
 
-static const unsigned int borderpx    = 3;        /* Border pixel of windows */
+static const unsigned int borderpx = 3;        /* Border pixel of windows */
 
 /* TODO: Color scheme configuration needs to be simplified. */
 static const char bar_background_color[] = "#1d2021"; 

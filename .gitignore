@@ -9,5 +9,4 @@ bin/
 obj/
 
 # VSCode
-.vscode/
-
+**/.vscode/
