@@ -1,8 +1,6 @@
 #include <X11/X.h>
 #include <X11/Xutil.h>
 
-/* TODO: This config file shouldn't exist. Instead, the user should configure the program in a .conf or .toml file.  */
-
 /* USER CONFIGURATION */
 /* ------------------------------------------------------------------------------------------ */
 
@@ -29,14 +27,14 @@ static const unsigned int systrayspacing = 2;
  * bar_height 
  * systray_width 
  * resize_step
- * */
+*/
 
-/* change the name of this variable to master_width_percentage */
-static const float master_factor = 0.52; /* Factor of master area size [0.05..0.95] */
+static const float master_factor = 0.52; /* Factor of master width size [0.05..0.95] */
 
 #define MODKEY Mod4Mask
 
-/* ----------------------------------------------------------------------------------------- */
+/* USER CONFIGURATION */
+/* ------------------------------------------------------------------------------------------ */
 
 static const char *colors[][3] = {
     [SchemeNorm] = { bar_foreground_color, bar_background_color, unfocused_client_border_color },
@@ -58,7 +56,6 @@ static const Key keys[] = {
     /* Application hotkeys */
     { MODKEY,                       XK_d,      spawn,          SHCMD("dmenu_run") },
     { MODKEY,                       XK_Return, spawn,          { .v = termcmd } },
-    { MODKEY,                       XK_w,      spawn,          SHCMD("pcmanfm") },
     
     /* Media keys */
     { 0,                       XF86XK_AudioMute,             spawn,          SHCMD("amixer sset Master toggle; pkill -RTMIN+10 sblocks") },
