@@ -86,7 +86,7 @@ static const Key keys[] = {
     { MODKEY|ShiftMask,             XK_Right,  move_client_to_right_tag,       {0} },
     { MODKEY|ShiftMask,             XK_Left,   move_client_to_left_tag,        {0} },
     { MODKEY,                       XK_v,      move_client_next,               {0} },
-    { MODKEY,                       XK_b,      rotate_clients,                 {0} },
+    { MODKEY,                       XK_r,      rotate_clients,                 {0} },
     { MODKEY,                       XK_l,      increase_master_width,          {0} },
     { MODKEY,                       XK_h,      decrease_master_width,          {0} },
     { MODKEY,                       XK_z,      make_master,                    {0} },
