@@ -11,7 +11,7 @@ In order to build this project, you need:
 - C99 Compiler
 - GNU Make
 - libx11
-- libfreetype2
+- libxft
 
 ## Build
 
@@ -85,7 +85,7 @@ By default, MODKEY is the Super button.
 | MODKEY + Shift + Left  | Move window to left tag |
 | MODKEY + Shift + Right  | Move window to right tag |
 | MODKEY + v  | Move the client to the next position in the stack  |
-| MODKEY + j  | Focus the next window in the stack |
+| MODKEY + r  | Rotate clients |
 | MODKEY + l  | Increase the width of the master window |
 | MODKEY + h  | Decrease the width of the master window |
 | MODKEY + z  | Turn the focused into the master window  |
