@@ -1,41 +1,42 @@
 # ndwm
 
-![ndwm](doc/ndwm.png)
+<img align="left" style="width:256px" src="doc/logo.png" width="256px">
 
-NDWM is a dynamic window manager for X11, based on DWM.
+**NDWM is a fully-featured and simple dynamic window manager for X11.**
 
-## Requirements
+The purpose of NDWM is to be a simple yet powerful window manager with sensible defaults and the essential features you would expect in a window manager. The user should also be able to easily modify the window manager's behavior. Configuration is done by hacking into the source code.
 
-In order to build this project, you need:
+NDWM uses libx11 to communicate with the X server.
+
+![Screenshot](doc/ndwm.png)
+
+## Dependencies
 
 - C99 Compiler
 - GNU Make
 - libx11
 - libxft
 
-## Build
+## Installation
 
-You can build this project by running `make`:
+First, make sure you have all the dependencies **installed.**
 
-```sh
-make
-```
-
-The executable will be located at the `bin` directory.
-
-## Install
-
-Enter the following command to build and install (if necessary, run it as root):
+Enter the following command to build and install (as root):
 
 ```sh
 make clean install
 ```
 
-By default, the program is installed in `/usr/local/bin`.
+By default, the program is installed under `/usr/local/bin`.
+
+## Configuration
+
+You should configure **ndwm** by manualy editing the file `config.h` to match your preferences, then recompile the program.
+
 
 ## Usage
 
-Put **ndwm** in your `.xinitrc` file or other startup script to start the window manager. It's also recommended to use **ndwm** with a status bar, such as **sblocks.** If you choose to do so, your `.xinitrc` file should look something like this:
+Put "**ndwm**" in your `.xinitrc` file or other startup script to start the window manager. It's also recommended to use **ndwm** with a status bar, such as **sblocks.** If you choose to do so, your `.xinitrc` file should look something like this:
 
 ```
 sblocks &
@@ -54,16 +55,32 @@ exec ndwm
 ## TODO
 
 - [ ] Color scheme configuration needs to be simplified.
-- [ ] Configuration should be done in a proper configuration file such as a .toml file.
-- [ ] There's still a lot of nonsensical code to fix.
+- [ ] Configuration should be done in a .toml file.
 
-## Master layout
+## Behavior
 
-This section is under development.
+By default there are 9 tags you can navigate to. The window model is **master-stack**. A new window will always be the **master** window, while the existing ones will be pushed upon a *stack** on the right side of the screen. 
+
+
+    +------+----------------------------------+--------+
+    | tags | title                            | status |
+    +------+---------------------+------------+--------+
+    |                            |                     |
+    |                            |                     |
+    |                            |                     |
+    |                            |                     |
+    |          master            |        stack        |
+    |                            |                     |
+    |                            |                     |
+    |                            |                     |
+    |                            |                     |
+    +----------------------------+---------------------+
+
+You can move around, change the master window, rotate the position of the windows, etc. Windows are **tiled**, but you can make them **float** by pressing `MODKEY + Left Mouse Button`, then drag the window.
 
 ## Default keybindings
 
-By default, MODKEY is the Super button.
+By default, MODKEY is the Super button (or Windows button).
 
 | Keybinding  | Action |
 | ------------- | ------------- |
@@ -91,10 +108,3 @@ By default, MODKEY is the Super button.
 | MODKEY + z  | Turn the focused into the master window  |
 | MODKEY + Shift + r  | Quit ndwm |
 
-## Configuration
-
-You should configure **ndwm** by manualy editing the file `src/config.h` to match your preferences, then recompile the program.
-
-## Screenshots
-
-![Screenshot](doc/print.png)
